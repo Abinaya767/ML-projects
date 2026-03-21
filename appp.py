@@ -3,7 +3,22 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
+# ==============================
+# APP TITLE & DESCRIPTION
+# ==============================
 st.title("YouTube Video Analysis Dashboard")
+
+st.markdown("""
+Welcome to the **YouTube Video Analysis Dashboard**! 📊  
+
+This interactive dashboard allows you to explore the performance of YouTube videos across different content categories. You can:  
+- View **raw data** for each video  
+- Analyze **key metrics** like average views, likes, and watch time  
+- Visualize trends such as **views per video**, **CTR vs subscribers**, and **likes vs comments**  
+- Compare **average views by category**  
+
+Use the charts and tooltips to quickly gain insights into which videos are performing best and how audience engagement varies across categories.
+""")
 
 # ==============================
 # 1. MANUAL DATA
