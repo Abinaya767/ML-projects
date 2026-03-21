@@ -1,84 +1,71 @@
-# app_manual_data_labels.py
 import streamlit as st
 import pandas as pd
-import altair as alt
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-st.title("YouTube Video Analysis Dashboard")
+# ===============================
+# 1. APP INTRODUCTION
+# ===============================
+st.set_page_config(page_title="YouTube Video Analytics", layout="wide")
 
-# ==============================
-# 1. MANUAL DATA
-# ==============================
-data = [
-    ["Vlog", 54.03, 782, 24.12, 570, 25, 1079354, 1346, 1767, 2744, 234459.67],
-    ["Education", 22.56, 949, 70.11, 339, 23.38, 1170449, 10787, 1249, 1998, 308543.36],
-    ["Reacts", 9.82, 318, 53.97, 638, 2.94, 694767, 21670, 5403, 322, 61371.08],
-    ["News", 26.86, 38, 2.36, 109, 18.86, 610243, 21145, 7984, 1181, 6441.45],
-    ["Vlog", 48.66, 493, 16.89, 378, 11.58, 724825, 55342, 5013, 2524, 99260.76],
-    # add all remaining rows here
-]
+st.markdown("""
+# YouTube Video Analytics Dashboard
 
-columns = [
-    "Category", "Duration", "Views", "Avg_View_Percentage", "Subscribers_Gained",
-    "CTR", "Impressions", "Likes", "Comments", "Shares", "Total_Watch_Hours"
-]
+This app visualizes your YouTube channel's video performance using **Likes, Comments, and Views**.  
+It helps you understand which **content categories** perform best and compare **engagement metrics** across videos.  
 
-df = pd.DataFrame(data, columns=columns)
+Features include:  
+- **Category-wise totals** for Likes, Comments, and Views  
+- **Grouped bar charts** for Likes vs Comments per video  
+- Interactive charts with tooltips for clear insights  
 
-# Add a unique label for each video to use in X-axis
-df["Video_Label"] = df["Category"] + " #" + (df.index + 1).astype(str)
+Use this dashboard to quickly spot trends and make data-driven content decisions!
+""")
 
-# ==============================
-# 2. SHOW RAW DATA
-# ==============================
-st.subheader("Raw Data")
-st.dataframe(df)
+# ===============================
+# 2. RAW DATA
+# ===============================
+data = {
+    "Category": ["Vlog","Education","Reacts","News","Vlog","Comedy","Education","Comedy","Vlog","Education","Comedy","News","Music","Gaming","Music","Vlog","Reacts","Gaming",
+                 "Sports","News","Sports","Education","Gaming","Sports","Sports","Comedy","Music","Comedy","Gaming","Gaming","Vlog","Comedy","Tech","Music","Gaming",
+                 "Vlog","Comedy","Music","Comedy","Sports","Vlog","Music","Education","Education","Music","Comedy","Vlog","Education","Vlog","Education","Sports","Comedy",
+                 "Sports","Education","Education","Tech","Music","News","Gaming","Tech","Vlog","Gaming","Sports","Comedy","Vlog","Vlog"],
+    "Likes": [782,949,318,38,493,514,85,1827,1880,914,401,803,1958,1870,506,143,302,2685,944,962,276,83,948,19,153,3402,859,331,29,3151,154,22,760,304,356,528,595,371,1512,501,2176,116,2255,2115,161,651,756,40,192,1596,1966,6,624,2267,99,507,177,179,291,839,682,1379,381,472,2648,925,2493,1173,170,441,1240,1944,2163,2050,41,52,868,1220,300,1708],
+    "Comments": [24.12,70.11,53.97,2.36,16.89,17.79,16.71,71.29,94.55,41.02,62.64,26.13,54.72,83.4,20.8,48.15,29.16,78.26,39.1,47.83,71.65,18.18,27.82,14.01,45.29,95.07,57.24,21.65,1.98,89.45,29.43,3.57,35.44,12.16,18.07,16.94,64.6,18.78,98.63,68.72,76.05,32.99,74.72,96.95,37.32,18.51,28.81,22.15,59.48,58.62,75,1.3,20.59,86.72,17.5,20.99,53.83,12.72,8.96,62.2,77.48,47.46,29.98,71.58,92.41,74.73,90.48,69.38,16.83,21.42,71.61,60.19,95.45,72.16,12.52,2.54,75.82,58.26,85.91,59.62],
+    "Views": [234459.67,308543.36,61371.08,6441.45,99260.76,283994.57,30611.07,455658.88,446547.52,360631.14,162924.52,216994.24,913204.67,948995.91,115327.8,3245.74,117094.21,1145338.96,180012.93,25481.78,50531.84,23827.11,100772.66,1862.63,54098.34,1744826.26,89869.77,73110.91,885.51,598084.31,46671.62,489.49,221111.87,154180.95,115460.59,208402.77,62178,55480.06,802144.98,9865.39,974038.65,59275.19,39445.59,369243.16,70560.26,14598.49,84450.03,21299.51,21602.67,308598.57,227516.99,939.26,203973.12,924710.56,22312.18,162758.55,71755.8,45832.2,69137.48,158927.58,364161.1,390608.26,177147.64,166111.35,1280521.31,410434.32,1354707.28,1230.35,38612.01,60598.18,119616.94,175926.6,871755.69,541865.11,1416.65,27714.05,25562.84,305038.63,135138.33,216699.65]
+}
 
-# ==============================
-# 3. SUMMARY METRICS
-# ==============================
-st.subheader("Key Metrics")
-col1, col2, col3 = st.columns(3)
-col1.metric("Average Views", int(df["Views"].mean()))
-col2.metric("Average Likes", int(df["Likes"].mean()))
-col3.metric("Average Watch Time (hrs)", round(df["Total_Watch_Hours"].mean(), 2))
+df = pd.DataFrame(data)
 
-# ==============================
-# 4. VISUALIZATIONS
-# ==============================
+# ===============================
+# 3. CATEGORY-WISE TOTALS
+# ===============================
+st.subheader("Total Likes, Comments, and Views per Category")
+category_totals = df.groupby("Category").sum().reset_index()
+st.dataframe(category_totals)
 
-# ---- Views per Video ----
-st.subheader("Views per Video")
-views_chart = alt.Chart(df).mark_bar(color='skyblue').encode(
-    x=alt.X("Video_Label:N", title="Video (Category + #)"),
-    y=alt.Y("Views:Q", title="Views"),
-    tooltip=["Video_Label", "Views", "Likes", "Comments", "Shares"]
-).properties(width=800, height=400)
-st.altair_chart(views_chart, use_container_width=True)
+# ===============================
+# 4. BAR CHART: LIKES VS COMMENTS PER VIDEO
+# ===============================
+st.subheader("Likes vs Comments per Video")
 
-# ---- CTR vs Subscribers ----
-st.subheader("CTR vs Subscribers Gained")
-ctr_chart = alt.Chart(df).mark_circle(size=100, color='orange').encode(
-    x=alt.X("CTR:Q", title="Click Through Rate (%)"),
-    y=alt.Y("Subscribers_Gained:Q", title="Subscribers Gained"),
-    tooltip=["Video_Label", "CTR", "Subscribers_Gained", "Views"]
-).properties(width=800, height=400)
-st.altair_chart(ctr_chart, use_container_width=True)
+plt.figure(figsize=(12,6))
+sns.barplot(data=df, x="Category", y="Likes", color="skyblue", label="Likes")
+sns.barplot(data=df, x="Category", y="Comments", color="salmon", label="Comments", alpha=0.7)
+plt.xticks(rotation=45)
+plt.ylabel("Count")
+plt.title("Likes and Comments per Video Category")
+plt.legend()
+st.pyplot(plt.gcf())
 
-# ---- Likes vs Comments ----
-st.subheader("Likes vs Comments")
-likes_comments_chart = alt.Chart(df).mark_circle(size=100, color='green').encode(
-    x=alt.X("Likes:Q", title="Likes"),
-    y=alt.Y("Comments:Q", title="Comments"),
-    tooltip=["Video_Label", "Likes", "Comments", "Views"]
-).properties(width=800, height=400)
-st.altair_chart(likes_comments_chart, use_container_width=True)
+# ===============================
+# 5. BAR CHART: VIEWS PER CATEGORY
+# ===============================
+st.subheader("Total Views per Category")
 
-# ---- Average Views by Category ----
-st.subheader("Average Views by Category")
-category_views = df.groupby("Category")["Views"].mean().reset_index()
-bar_chart = alt.Chart(category_views).mark_bar(color='purple').encode(
-    x=alt.X("Category:N", title="Category"),
-    y=alt.Y("Views:Q", title="Average Views"),
-    tooltip=["Category", "Views"]
-).properties(width=600, height=400)
-st.altair_chart(bar_chart, use_container_width=True)
+plt.figure(figsize=(12,6))
+sns.barplot(data=category_totals, x="Category", y="Views", palette="viridis")
+plt.xticks(rotation=45)
+plt.ylabel("Total Views")
+plt.title("Total Views by Video Category")
+st.pyplot(plt.gcf())
