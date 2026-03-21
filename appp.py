@@ -11,10 +11,9 @@ st.title("📊 YouTube Video Analysis Dashboard (No Graphs, Auto Load)")
 # =========================
 # LOAD DATASET DIRECTLY
 # =========================
-# Replace this with your local Excel file or cloud link
-DATA_PATH = r"C:\Users\Admin\Downloads\Youtube-Video-Trending-Analysis.xlsx"
+DATA_PATH = r"C:\Users\Admin\OneDrive\Documents\YouTube_Video.csv"
 
-df = pd.read_excel(DATA_PATH)
+df = pd.read_csv(DATA_PATH)
 
 st.success("✅ Dataset Loaded Automatically")
 
