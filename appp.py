@@ -10,15 +10,17 @@ st.write("""
 This app provides a quick analytics overview of a YouTube channel dataset. 
 You can explore content statistics, subscriber counts, average video duration, 
 and overall engagement metrics like likes, comments, shares, and total watch hours.
+
+**Note:** The dataset is an Excel file, not CSV.
 """)
 
 # ==============================
-# 2. Predefined CSV Path
+# 2. Predefined Excel Path
 # ==============================
-DATA_PATH = r"C:\Users\Admin\OneDrive\Desktop\YouTube_Video.csv"  # <- new Desktop path
+DATA_PATH = r"C:\Users\Admin\OneDrive\Desktop\YouTube_Video.xlsx"  # <- Excel file path
 
 try:
-    df = pd.read_csv(DATA_PATH)
+    df = pd.read_excel(DATA_PATH)  # <-- use read_excel for Excel files
 
     st.write("### Data Preview")
     st.dataframe(df.head())
