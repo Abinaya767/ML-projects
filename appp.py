@@ -15,7 +15,7 @@ and overall engagement metrics like likes, comments, shares, and total watch hou
 # ==============================
 # 2. Predefined CSV Path
 # ==============================
-DATA_PATH = r"C:\Users\Admin\OneDrive\Documents\YouTube_Video.csv"
+DATA_PATH = r"C:\Users\Admin\OneDrive\Desktop\YouTube_Video.csv"  # <- new Desktop path
 
 try:
     df = pd.read_csv(DATA_PATH)
