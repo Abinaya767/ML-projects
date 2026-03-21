@@ -1,129 +1,93 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "b973baaf",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# ==============================\n",
-    "# 1. IMPORT LIBRARIES\n",
-    "# ==============================\n",
-    "import streamlit as st\n",
-    "import pandas as pd\n",
-    "import matplotlib.pyplot as plt\n",
-    "\n",
-    "from sklearn.cluster import KMeans\n",
-    "from sklearn.preprocessing import StandardScaler\n",
-    "from sklearn.decomposition import PCA\n",
-    "\n",
-    "# ==============================\n",
-    "# 2. TITLE\n",
-    "# ==============================\n",
-    "st.title(\"📊 YouTube Video Clustering\")\n",
-    "st.write(\"Clustering videos based on views, likes, comments\")\n",
-    "\n",
-    "# ==============================\n",
-    "# 3. FILE UPLOAD\n",
-    "# ==============================\n",
-    "uploaded_file = st.file_uploader(\"Upload YouTube CSV file\", type=[\"csv\"])\n",
-    "\n",
-    "if uploaded_file is not None:\n",
-    "\n",
-    "    # ==============================\n",
-    "    # 4. LOAD DATA\n",
-    "    # ==============================\n",
-    "    df = pd.read_csv(uploaded_file)\n",
-    "\n",
-    "    st.subheader(\"Dataset Preview\")\n",
-    "    st.write(df.head())\n",
-    "\n",
-    "    # ==============================\n",
-    "    # 5. SELECT REQUIRED COLUMNS\n",
-    "    # ==============================\n",
-    "    df = df[['views', 'likes', 'dislikes', 'comment_count', 'category_id']]\n",
-    "    df.rename(columns={'category_id': 'category'}, inplace=True)\n",
-    "\n",
-    "    # ==============================\n",
-    "    # 6. CLEAN DATA\n",
-    "    # ==============================\n",
-    "    df.dropna(inplace=True)\n",
-    "    df = df.sample(5000, random_state=42)\n",
-    "\n",
-    "    # ==============================\n",
-    "    # 7. FEATURES\n",
-    "    # ==============================\n",
-    "    X = df[['views', 'likes', 'dislikes', 'comment_count', 'category']]\n",
-    "\n",
-    "    # ==============================\n",
-    "    # 8. SCALING\n",
-    "    # ==============================\n",
-    "    scaler = StandardScaler()\n",
-    "    X_scaled = scaler.fit_transform(X)\n",
-    "\n",
-    "    # ==============================\n",
-    "    # 9. ELBOW METHOD\n",
-    "    # ==============================\n",
-    "    st.subheader(\"📉 Elbow Method\")\n",
-    "\n",
-    "    wcss = []\n",
-    "    for i in range(1, 10):\n",
-    "        model = KMeans(n_clusters=i, random_state=42)\n",
-    "        model.fit(X_scaled)\n",
-    "        wcss.append(model.inertia_)\n",
-    "\n",
-    "    fig1, ax1 = plt.subplots()\n",
-    "    ax1.plot(range(1, 10), wcss)\n",
-    "    ax1.set_xlabel(\"Number of Clusters\")\n",
-    "    ax1.set_ylabel(\"WCSS\")\n",
-    "    ax1.set_title(\"Elbow Method\")\n",
-    "\n",
-    "    st.pyplot(fig1)\n",
-    "\n",
-    "    # ==============================\n",
-    "    # 10. SELECT K\n",
-    "    # ==============================\n",
-    "    k = st.slider(\"Select number of clusters\", 2, 10, 3)\n",
-    "\n",
-    "    # ==============================\n",
-    "    # 11. APPLY KMEANS\n",
-    "    # ==============================\n",
-    "    kmeans = KMeans(n_clusters=k, random_state=42)\n",
-    "    df['cluster'] = kmeans.fit_predict(X_scaled)\n",
-    "\n",
-    "    # ==============================\n",
-    "    # 12. PCA\n",
-    "    # ==============================\n",
-    "    pca = PCA(n_components=2)\n",
-    "    X_pca = pca.fit_transform(X_scaled)\n",
-    "\n",
-    "    # ==============================\n",
-    "    # 13. VISUALIZATION\n",
-    "    # ==============================\n",
-    "    st.subheader(\"📊 Cluster Visualization\")\n",
-    "\n",
-    "    fig2, ax2 = plt.subplots()\n",
-    "    ax2.scatter(X_pca[:, 0], X_pca[:, 1], c=df['cluster'])\n",
-    "    ax2.set_xlabel(\"PCA 1\")\n",
-    "    ax2.set_ylabel(\"PCA 2\")\n",
-    "    ax2.set_title(\"Clusters\")\n",
-    "\n",
-    "    st.pyplot(fig2)\n",
-    "\n",
-    "    # ==============================\n",
-    "    # 14. CLUSTER ANALYSIS\n",
-    "    # ==============================\n",
-    "    st.subheader(\"📈 Cluster Analysis\")\n",
-    "    st.write(df.groupby('cluster').mean())"
-   ]
-  }
- ],
- "metadata": {
-  "language_info": {
-   "name": "python"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# ==============================
+# 1. TITLE
+# =============================
+st.title("📊 YouTube Video Data Analysis")
+
+# ==============================
+# 2. LOAD DATASET
+# ==============================
+file_path = r"C:\Users\Admin\OneDrive\Documents\YouTube_Video.csv"
+
+try:
+    df = pd.read_csv(file_path)
+    st.success("Dataset Loaded Successfully ✅")
+except:
+    st.error("Error loading file ❌ Check file path")
+    st.stop()
+
+# ==============================
+# 3. SHOW DATA
+# ==============================
+st.subheader("🔍 Dataset Preview")
+st.write(df.head())
+
+# ==============================
+# 4. COLUMN DETAILS
+# ==============================
+st.subheader("📌 Column Names")
+st.write(df.columns)
+
+st.subheader("📊 Dataset Info")
+st.write(df.describe())
+
+# ==============================
+# 5. SELECT COLUMN
+# ==============================
+st.subheader("🎯 Select Column")
+column = st.selectbox("Choose any column", df.columns)
+
+st.write("Selected Column:", column)
+st.write(df[column])
+
+# ==============================
+# 6. FILTER DATA
+# ==============================
+st.subheader("🔎 Filter Data")
+
+if df[column].dtype == 'int64' or df[column].dtype == 'float64':
+    min_val = int(df[column].min())
+    max_val = int(df[column].max())
+
+    val = st.slider("Select range", min_val, max_val, (min_val, max_val))
+    filtered_df = df[(df[column] >= val[0]) & (df[column] <= val[1])]
+
+    st.write(filtered_df)
+
+# ==============================
+# 7. PLOT GRAPH
+# ==============================
+st.subheader("📈 Simple Plot")
+
+if df[column].dtype == 'int64' or df[column].dtype == 'float64':
+    fig, ax = plt.subplots()
+    ax.hist(df[column])
+    st.pyplot(fig)
+
+# ==============================
+# 8. DELETE COLUMN OPTION
+# ==============================
+st.subheader("🗑 Delete Column")
+
+del_col = st.selectbox("Select column to delete", df.columns)
+
+if st.button("Delete Column"):
+    df = df.drop(columns=[del_col])
+    st.success(f"{del_col} column deleted ✅")
+    st.write(df.head())
+
+# ==============================
+# 9. DOWNLOAD CLEANED DATA
+# ==============================
+st.subheader("⬇ Download Data")
+
+csv = df.to_csv(index=False).encode('utf-8')
+st.download_button(
+    label="Download CSV",
+    data=csv,
+    file_name='cleaned_data.csv',
+    mime='text/csv',
+)
