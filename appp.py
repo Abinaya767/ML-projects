@@ -11,22 +11,26 @@ This app provides a quick analytics overview of a YouTube channel dataset.
 You can explore content statistics, subscriber counts, average video duration, 
 and overall engagement metrics like likes, comments, shares, and total watch hours.
 
-**Note:** The dataset is an Excel file, not CSV.
+**Note:** The dataset must be a CSV file.
 """)
 
 # ==============================
-# 2. Predefined Excel Path
+# 2. Predefined CSV Path
 # ==============================
-DATA_PATH = r"C:\Users\Admin\OneDrive\Desktop\YouTube_Video.xlsx"  # <- Excel file path
+DATA_PATH = r"C:\Users\Admin\OneDrive\Desktop\YouTube_Video.csv"  # <- CSV file path
 
 try:
-    df = pd.read_excel(DATA_PATH)  # <-- use read_excel for Excel files
+    # Load CSV
+    df = pd.read_csv(DATA_PATH)
 
+    # ==============================
+    # 3. Show Data Preview
+    # ==============================
     st.write("### Data Preview")
     st.dataframe(df.head())
 
     # ==============================
-    # 3. Bar chart: Content vs Subscribers
+    # 4. Bar chart: Content vs Subscribers
     # ==============================
     if 'content' in df.columns and 'subscribers' in df.columns:
         content_subs = df.groupby('content')['subscribers'].sum().reset_index()
@@ -34,7 +38,7 @@ try:
         st.bar_chart(data=content_subs.set_index('content'))
 
     # ==============================
-    # 4. Table: Video Duration & Avg Views
+    # 5. Table: Video Duration & Avg Views
     # ==============================
     if 'content' in df.columns and 'video_duration' in df.columns and 'views' in df.columns:
         table_data = df.groupby('content').agg({
@@ -47,7 +51,7 @@ try:
         st.dataframe(table_data)
 
     # ==============================
-    # 5. Total Engagement Metrics
+    # 6. Total Engagement Metrics
     # ==============================
     engagement_columns = ['likes', 'comments', 'shares', 'watch_hours']
     st.write("### Total Engagement Metrics Across All Content")
