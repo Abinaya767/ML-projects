@@ -1,57 +1,52 @@
-# app.py
 import streamlit as st
 import pandas as pd
 
-# ==============================
-# 1. App Introduction
-# ==============================
-st.title("YouTube Channel Analytics Dashboard")
-st.write("""
-This app provides a quick analytics overview of a YouTube channel dataset. 
-You can explore content statistics, subscriber counts, average video duration, 
-and overall engagement metrics like likes, comments, shares, and total watch hours.
-""")
+# =========================
+# PAGE CONFIG
+# =========================
+st.set_page_config(page_title="YouTube Video Analysis Dashboard", layout="wide")
 
-# ==============================
-# 2. Predefined CSV Path
-# ==============================
-DATA_PATH = r"C:\Users\Admin\OneDrive\Desktop\YouTube_Video.csv"  # <- new Desktop path
+st.title("📊 YouTube Video Analysis Dashboard (No Graphs, Auto Load)")
 
-try:
-    df = pd.read_csv(DATA_PATH)
+# =========================
+# LOAD DATASET DIRECTLY
+# =========================
+DATA_PATH = r"C:\Users\Admin\OneDrive\Documents\YouTube_Video.csv"
 
-    st.write("### Data Preview")
-    st.dataframe(df.head())
+df = pd.read_csv(DATA_PATH)
 
-    # ==============================
-    # 3. Bar chart: Content vs Subscribers
-    # ==============================
-    if 'content' in df.columns and 'subscribers' in df.columns:
-        content_subs = df.groupby('content')['subscribers'].sum().reset_index()
-        st.write("### Content Count vs Subscribers")
-        st.bar_chart(data=content_subs.set_index('content'))
+st.success("✅ Dataset Loaded Automatically")
 
-    # ==============================
-    # 4. Table: Video Duration & Avg Views
-    # ==============================
-    if 'content' in df.columns and 'video_duration' in df.columns and 'views' in df.columns:
-        table_data = df.groupby('content').agg({
-            'video_duration': 'mean',
-            'views': 'mean'
-        }).reset_index()
-        table_data.rename(columns={'video_duration': 'Avg Video Duration (min)', 
-                                   'views': 'Avg Views'}, inplace=True)
-        st.write("### Average Video Duration & Views per Content")
-        st.dataframe(table_data)
+# =========================
+# BASIC INFO
+# =========================
+st.subheader("📌 Dataset Overview")
+col1, col2, col3 = st.columns(3)
+col1.metric("Rows", df.shape[0])
+col2.metric("Columns", df.shape[1])
+col3.metric("Missing Values", df.isnull().sum().sum())
 
-    # ==============================
-    # 5. Total Engagement Metrics
-    # ==============================
-    engagement_columns = ['likes', 'comments', 'shares', 'watch_hours']
-    st.write("### Total Engagement Metrics Across All Content")
-    total_engagement = df[engagement_columns].sum().to_frame().reset_index()
-    total_engagement.columns = ['Metric', 'Total']
-    st.dataframe(total_engagement)
+st.write(df.head())
 
-except FileNotFoundError:
-    st.error(f"File not found: {DATA_PATH}. Please make sure this file exists on your system.")
+# =========================
+# COLUMN SELECTION & DISPLAY
+# =========================
+st.subheader("🎯 Column Data")
+
+for col_name in df.columns:
+    st.write(f"**Column:** {col_name}")
+    st.write(df[col_name].head(10))  # show first 10 values
+    st.write(df[col_name].describe() if pd.api.types.is_numeric_dtype(df[col_name]) else df[col_name].value_counts().head(10))
+
+# =========================
+# DOWNLOAD
+# =========================
+st.subheader("⬇ Download Dataset")
+csv = df.to_csv(index=False).encode('utf-8')
+
+st.download_button(
+    "Download CSV",
+    csv,
+    "youtube_trending_data.csv",
+    "text/csv"
+)
