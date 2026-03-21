@@ -1,63 +1,82 @@
 # app.py
 import streamlit as st
 import pandas as pd
+import altair as alt
 
 # ==============================
-# 1. App Introduction
+# 1. LOAD DATASET
 # ==============================
-st.title("YouTube Channel Analytics Dashboard")
-st.write("""
-This app provides a quick analytics overview of a YouTube channel dataset. 
-You can explore content statistics, subscriber counts, average video duration, 
-and overall engagement metrics like likes, comments, shares, and total watch hours.
-
-**Note:** The dataset must be a CSV file.
-""")
-
-# ==============================
-# 2. Predefined CSV Path
-# ==============================
+# Replace this with your CSV path
 DATA_PATH = r"C:\Users\Admin\OneDrive\Documents\YouTube_Video.csv"
+df = pd.read_csv(DATA_PATH, header=None)
 
-try:
-    # Load CSV
-    df = pd.read_csv(DATA_PATH)
+# Set column names based on your data
+df.columns = [
+    "Category", "Duration", "Views", "Avg_View_Percentage", "Subscribers_Gained",
+    "CTR", "Impressions", "Likes", "Comments", "Shares", "Total_Watch_Hours"
+]
 
-    # ==============================
-    # 3. Show Data Preview
-    # ==============================
-    st.write("### Data Preview")
-    st.dataframe(df.head())
+st.title("YouTube Video Analysis Dashboard")
 
-    # ==============================
-    # 4. Bar chart: Content vs Subscribers
-    # ==============================
-    if 'content' in df.columns and 'subscribers' in df.columns:
-        content_subs = df.groupby('content')['subscribers'].sum().reset_index()
-        st.write("### Content Count vs Subscribers")
-        st.bar_chart(data=content_subs.set_index('content'))
+# ==============================
+# 2. FILTER BY CATEGORY
+# ==============================
+categories = df["Category"].unique()
+selected_category = st.selectbox("Select Category", options=categories)
 
-    # ==============================
-    # 5. Table: Video Duration & Avg Views
-    # ==============================
-    if 'content' in df.columns and 'video_duration' in df.columns and 'views' in df.columns:
-        table_data = df.groupby('content').agg({
-            'video_duration': 'mean',
-            'views': 'mean'
-        }).reset_index()
-        table_data.rename(columns={'video_duration': 'Avg Video Duration (min)', 
-                                   'views': 'Avg Views'}, inplace=True)
-        st.write("### Average Video Duration & Views per Content")
-        st.dataframe(table_data)
+filtered_df = df[df["Category"] == selected_category]
 
-    # ==============================
-    # 6. Total Engagement Metrics
-    # ==============================
-    engagement_columns = ['likes', 'comments', 'shares', 'watch_hours']
-    st.write("### Total Engagement Metrics Across All Content")
-    total_engagement = df[engagement_columns].sum().to_frame().reset_index()
-    total_engagement.columns = ['Metric', 'Total']
-    st.dataframe(total_engagement)
+st.subheader(f"Data for {selected_category} Videos")
+st.dataframe(filtered_df)
 
-except FileNotFoundError:
-    st.error(f"File not found: {DATA_PATH}. Please make sure this file exists on your system.")
+# ==============================
+# 3. SUMMARY METRICS
+# ==============================
+st.subheader("Key Metrics")
+col1, col2, col3 = st.columns(3)
+col1.metric("Average Views", int(filtered_df["Views"].mean()))
+col2.metric("Average Likes", int(filtered_df["Likes"].mean()))
+col3.metric("Average Watch Time (hrs)", round(filtered_df["Total_Watch_Hours"].mean(), 2))
+
+# ==============================
+# 4. VISUALIZATIONS
+# ==============================
+
+# Views by Video
+st.subheader("Views per Video")
+views_chart = alt.Chart(filtered_df).mark_bar().encode(
+    x=alt.X("index:O", title="Video #", sort=None),
+    y=alt.Y("Views", title="Views"),
+    tooltip=["Views", "Likes", "Comments", "Shares"]
+).transform_calculate(index="datum.index")
+st.altair_chart(views_chart, use_container_width=True)
+
+# CTR vs Subscribers Gained
+st.subheader("CTR vs Subscribers Gained")
+ctr_chart = alt.Chart(filtered_df).mark_circle(size=100, color='orange').encode(
+    x="CTR",
+    y="Subscribers_Gained",
+    tooltip=["Category", "Views", "CTR", "Subscribers_Gained"]
+)
+st.altair_chart(ctr_chart, use_container_width=True)
+
+# Likes vs Comments
+st.subheader("Likes vs Comments")
+likes_comments_chart = alt.Chart(filtered_df).mark_circle(size=100, color='green').encode(
+    x="Likes",
+    y="Comments",
+    tooltip=["Category", "Views", "Likes", "Comments"]
+)
+st.altair_chart(likes_comments_chart, use_container_width=True)
+
+# ==============================
+# 5. CATEGORY COMPARISON
+# ==============================
+st.subheader("Average Views by Category")
+category_views = df.groupby("Category")["Views"].mean().reset_index()
+bar_chart = alt.Chart(category_views).mark_bar().encode(
+    x="Category",
+    y="Views",
+    tooltip=["Category", "Views"]
+)
+st.altair_chart(bar_chart, use_container_width=True)
