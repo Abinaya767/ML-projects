@@ -4,97 +4,50 @@ import pandas as pd
 # =========================
 # PAGE CONFIG
 # =========================
-st.set_page_config(page_title="YouTube Dashboard", layout="wide")
+st.set_page_config(page_title="YouTube Video Analysis Dashboard", layout="wide")
 
-st.title("📊 YouTube Video Analysis Dashboard (No Graphs)")
+st.title("📊 YouTube Video Analysis Dashboard (No Graphs, Auto Load)")
 
 # =========================
-# FILE UPLOAD
+# LOAD DATASET DIRECTLY
 # =========================
-uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx"])
+# Replace this with your local Excel file or cloud link
+DATA_PATH = r"C:\Users\Admin\Downloads\Youtube-Video-Trending-Analysis.xlsx"
 
-if uploaded_file is not None:
+df = pd.read_excel(DATA_PATH)
 
-    # Read Excel file
-    df = pd.read_excel(uploaded_file)
-    st.success("✅ File Loaded Successfully")
+st.success("✅ Dataset Loaded Automatically")
 
-    # =========================
-    # BASIC INFO
-    # =========================
-    st.subheader("📌 Dataset Overview")
-    col1, col2, col3 = st.columns(3)
+# =========================
+# BASIC INFO
+# =========================
+st.subheader("📌 Dataset Overview")
+col1, col2, col3 = st.columns(3)
+col1.metric("Rows", df.shape[0])
+col2.metric("Columns", df.shape[1])
+col3.metric("Missing Values", df.isnull().sum().sum())
 
-    col1.metric("Rows", df.shape[0])
-    col2.metric("Columns", df.shape[1])
-    col3.metric("Missing Values", df.isnull().sum().sum())
+st.write(df.head())
 
-    st.write(df.head())
+# =========================
+# COLUMN SELECTION & DISPLAY
+# =========================
+st.subheader("🎯 Column Data")
 
-    # =========================
-    # COLUMN SELECT
-    # =========================
-    st.subheader("🎯 Column Selection")
-    all_cols = df.columns
-    col = st.selectbox("Select Column", all_cols)
+for col_name in df.columns:
+    st.write(f"**Column:** {col_name}")
+    st.write(df[col_name].head(10))  # show first 10 values
+    st.write(df[col_name].describe() if pd.api.types.is_numeric_dtype(df[col_name]) else df[col_name].value_counts().head(10))
 
-    st.write(df[col])
+# =========================
+# DOWNLOAD
+# =========================
+st.subheader("⬇ Download Dataset")
+csv = df.to_csv(index=False).encode('utf-8')
 
-    # =========================
-    # STATISTICS
-    # =========================
-    st.subheader("📊 Statistics")
-    st.write(df[col].describe())
-
-    # =========================
-    # FILTER
-    # =========================
-    st.subheader("🔍 Filter Data")
-
-    if pd.api.types.is_numeric_dtype(df[col]):
-        min_val = int(df[col].min())
-        max_val = int(df[col].max())
-        values = st.slider("Select Range", min_val, max_val, (min_val, max_val))
-        filtered_df = df[(df[col] >= values[0]) & (df[col] <= values[1])]
-        st.write(filtered_df)
-    else:
-        unique_vals = df[col].unique()
-        selected = st.multiselect("Select Values", unique_vals)
-        if selected:
-            filtered_df = df[df[col].isin(selected)]
-            st.write(filtered_df)
-
-    # =========================
-    # TOP VALUES
-    # =========================
-    st.subheader("🏆 Top 10 Values")
-    st.write(df[col].value_counts().head(10))
-
-    # =========================
-    # DELETE COLUMN
-    # =========================
-    st.subheader("🗑 Manage Columns")
-
-    del_col = st.selectbox("Select Column to Delete", df.columns)
-
-    if st.button("Delete Column"):
-        df = df.drop(columns=[del_col])
-        st.success(f"{del_col} deleted ✅")
-        st.write(df.head())
-
-    # =========================
-    # DOWNLOAD
-    # =========================
-    st.subheader("⬇ Download Cleaned Data")
-
-    csv = df.to_csv(index=False).encode('utf-8')
-
-    st.download_button(
-        "Download CSV",
-        csv,
-        "cleaned_data.csv",
-        "text/csv"
-    )
-
-else:
-    st.warning("⚠️ Upload Excel file to start analysis")
+st.download_button(
+    "Download CSV",
+    csv,
+    "youtube_trending_data.csv",
+    "text/csv"
+)
