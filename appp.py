@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
 
 # ===============================
 # 1. APP INTRODUCTION
@@ -11,15 +10,13 @@ st.set_page_config(page_title="YouTube Video Analytics", layout="wide")
 st.markdown("""
 # YouTube Video Analytics Dashboard
 
-This app visualizes your YouTube channel's video performance using **Likes, Comments, and Views**.  
-It helps you understand which **content categories** perform best and compare **engagement metrics** across videos.  
+Visualize your YouTube video performance with **Likes, Comments, and Views**.  
+Compare engagement metrics across different **content categories**.  
 
-Features include:  
-- **Category-wise totals** for Likes, Comments, and Views  
-- **Grouped bar charts** for Likes vs Comments per video  
-- Interactive charts with tooltips for clear insights  
-
-Use this dashboard to quickly spot trends and make data-driven content decisions!
+**Features:**
+- Category-wise totals for Likes, Comments, and Views
+- Interactive Likes vs Comments bar charts
+- Views visualization per category
 """)
 
 # ===============================
@@ -45,27 +42,29 @@ category_totals = df.groupby("Category").sum().reset_index()
 st.dataframe(category_totals)
 
 # ===============================
-# 4. BAR CHART: LIKES VS COMMENTS PER VIDEO
+# 4. INTERACTIVE BAR CHART: LIKES VS COMMENTS
 # ===============================
-st.subheader("Likes vs Comments per Video")
+st.subheader("Likes vs Comments per Video Category")
 
-plt.figure(figsize=(12,6))
-sns.barplot(data=df, x="Category", y="Likes", color="skyblue", label="Likes")
-sns.barplot(data=df, x="Category", y="Comments", color="salmon", label="Comments", alpha=0.7)
-plt.xticks(rotation=45)
-plt.ylabel("Count")
-plt.title("Likes and Comments per Video Category")
-plt.legend()
-st.pyplot(plt.gcf())
+fig_likes_comments = px.bar(df, 
+                            x="Category", 
+                            y=["Likes", "Comments"], 
+                            barmode="group",
+                            title="Likes vs Comments per Video Category",
+                            labels={"value":"Count", "Category":"Video Category"},
+                            height=500)
+st.plotly_chart(fig_likes_comments, use_container_width=True)
 
 # ===============================
-# 5. BAR CHART: VIEWS PER CATEGORY
+# 5. INTERACTIVE BAR CHART: VIEWS PER CATEGORY
 # ===============================
 st.subheader("Total Views per Category")
 
-plt.figure(figsize=(12,6))
-sns.barplot(data=category_totals, x="Category", y="Views", palette="viridis")
-plt.xticks(rotation=45)
-plt.ylabel("Total Views")
-plt.title("Total Views by Video Category")
-st.pyplot(plt.gcf())
+fig_views = px.bar(category_totals, 
+                   x="Category", 
+                   y="Views", 
+                   color="Views",
+                   title="Total Views by Video Category",
+                   labels={"Views":"Total Views", "Category":"Video Category"},
+                   height=500)
+st.plotly_chart(fig_views, use_container_width=True)
