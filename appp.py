@@ -6,7 +6,7 @@ import altair as alt
 # ==============================
 # APP TITLE & DESCRIPTION
 # ==============================
-st.title("YouTube Video Analysis Dashboard")
+st.title("YouTube Video Analysis")
 
 st.markdown("""
 Welcome to the **YouTube Video Analysis Dashboard**! 📊  
