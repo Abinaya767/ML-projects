@@ -2,92 +2,122 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# ==============================
-# 1. TITLE
-# =============================
-st.title("📊 YouTube Video Data Analysis")
+# =========================
+# PAGE CONFIG
+# =========================
+st.set_page_config(page_title="YouTube Dashboard", layout="wide")
 
-# ==============================
-# 2. LOAD DATASET
-# ==============================
-file_path = r"C:\Users\Admin\OneDrive\Documents\YouTube_Video.csv"
+st.title("📊 YouTube Video Analysis Dashboard")
 
-try:
-    df = pd.read_csv(file_path)
-    st.success("Dataset Loaded Successfully ✅")
-except:
-    st.error("Error loading file ❌ Check file path")
-    st.stop()
+# =========================
+# LOAD EXCEL FILE
+# =========================
+uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx"])
 
-# ==============================
-# 3. SHOW DATA
-# ==============================
-st.subheader("🔍 Dataset Preview")
-st.write(df.head())
+if uploaded_file is not None:
 
-# ==============================
-# 4. COLUMN DETAILS
-# ==============================
-st.subheader("📌 Column Names")
-st.write(df.columns)
+    df = pd.read_excel(uploaded_file)
+    st.success("✅ File Loaded Successfully")
 
-st.subheader("📊 Dataset Info")
-st.write(df.describe())
+    # =========================
+    # BASIC INFO
+    # =========================
+    st.subheader("📌 Dataset Overview")
+    col1, col2, col3 = st.columns(3)
 
-# ==============================
-# 5. SELECT COLUMN
-# ==============================
-st.subheader("🎯 Select Column")
-column = st.selectbox("Choose any column", df.columns)
+    col1.metric("Rows", df.shape[0])
+    col2.metric("Columns", df.shape[1])
+    col3.metric("Missing Values", df.isnull().sum().sum())
 
-st.write("Selected Column:", column)
-st.write(df[column])
-
-# ==============================
-# 6. FILTER DATA
-# ==============================
-st.subheader("🔎 Filter Data")
-
-if df[column].dtype == 'int64' or df[column].dtype == 'float64':
-    min_val = int(df[column].min())
-    max_val = int(df[column].max())
-
-    val = st.slider("Select range", min_val, max_val, (min_val, max_val))
-    filtered_df = df[(df[column] >= val[0]) & (df[column] <= val[1])]
-
-    st.write(filtered_df)
-
-# ==============================
-# 7. PLOT GRAPH
-# ==============================
-st.subheader("📈 Simple Plot")
-
-if df[column].dtype == 'int64' or df[column].dtype == 'float64':
-    fig, ax = plt.subplots()
-    ax.hist(df[column])
-    st.pyplot(fig)
-
-# ==============================
-# 8. DELETE COLUMN OPTION
-# ==============================
-st.subheader("🗑 Delete Column")
-
-del_col = st.selectbox("Select column to delete", df.columns)
-
-if st.button("Delete Column"):
-    df = df.drop(columns=[del_col])
-    st.success(f"{del_col} column deleted ✅")
     st.write(df.head())
 
-# ==============================
-# 9. DOWNLOAD CLEANED DATA
-# ==============================
-st.subheader("⬇ Download Data")
+    # =========================
+    # COLUMN SELECT
+    # =========================
+    st.subheader("🎯 Column Selection")
 
-csv = df.to_csv(index=False).encode('utf-8')
-st.download_button(
-    label="Download CSV",
-    data=csv,
-    file_name='cleaned_data.csv',
-    mime='text/csv',
-)
+    numeric_cols = df.select_dtypes(include=['int64','float64']).columns
+    all_cols = df.columns
+
+    col = st.selectbox("Select Column", all_cols)
+
+    # =========================
+    # STATISTICS
+    # =========================
+    st.subheader("📊 Statistics")
+    st.write(df[col].describe())
+
+    # =========================
+    # FILTER
+    # =========================
+    st.subheader("🔍 Filter Data")
+
+    if col in numeric_cols:
+        min_val = int(df[col].min())
+        max_val = int(df[col].max())
+
+        values = st.slider("Select Range", min_val, max_val, (min_val, max_val))
+        filtered_df = df[(df[col] >= values[0]) & (df[col] <= values[1])]
+        st.write(filtered_df)
+    else:
+        unique_vals = df[col].unique()
+        selected = st.multiselect("Select Values", unique_vals)
+        if selected:
+            filtered_df = df[df[col].isin(selected)]
+            st.write(filtered_df)
+
+    # =========================
+    # GRAPH SECTION
+    # =========================
+    st.subheader("📈 Data Visualization")
+
+    chart_type = st.selectbox("Choose Chart", ["Histogram", "Bar Chart", "Line Chart"])
+
+    if col in numeric_cols:
+        fig, ax = plt.subplots()
+
+        if chart_type == "Histogram":
+            ax.hist(df[col])
+        elif chart_type == "Line Chart":
+            ax.plot(df[col])
+        elif chart_type == "Bar Chart":
+            df[col].value_counts().head(10).plot(kind='bar', ax=ax)
+
+        st.pyplot(fig)
+    else:
+        st.warning("⚠️ Select numeric column for better visualization")
+
+    # =========================
+    # TOP VALUES
+    # =========================
+    st.subheader("🏆 Top 10 Values")
+    st.write(df[col].value_counts().head(10))
+
+    # =========================
+    # DELETE COLUMN
+    # =========================
+    st.subheader("🗑 Manage Columns")
+
+    del_col = st.selectbox("Select Column to Delete", df.columns)
+
+    if st.button("Delete Column"):
+        df = df.drop(columns=[del_col])
+        st.success(f"{del_col} deleted ✅")
+        st.write(df.head())
+
+    # =========================
+    # DOWNLOAD
+    # =========================
+    st.subheader("⬇ Download Cleaned Data")
+
+    csv = df.to_csv(index=False).encode('utf-8')
+
+    st.download_button(
+        "Download CSV",
+        csv,
+        "cleaned_data.csv",
+        "text/csv"
+    )
+
+else:
+    st.warning("⚠️ Upload Excel file to start analysis")
